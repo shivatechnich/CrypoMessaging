@@ -10,32 +10,41 @@ unsigned char *hashSHA2(const string &); //prototype of the SHA256
 int main()
 {
     fstream newfile;
+    string pt="";
+    //For Plain text
+    newfile.open("HW1PlaintextTest.txt",ios::in);
+    if (newfile.is_open()){ //checking whether the file is open
+        string tp;
+        while(getline(newfile, tp)){ //read data from file object and put it into string.
+            pt += tp; //print the data of the string
+        }
+      newfile.close();
+    }
+    cout << pt;
+    //For secret key
+    char secret_key[32];
     string st="";
-    char stream[];
     newfile.open("SharedSecretKey.txt",ios::in);
     if (newfile.is_open()){ //checking whether the file is open
         string tp;
         while(getline(newfile, tp)){ //read data from file object and put it into string.
             st += tp; //print the data of the string
         }
-        newfile >> stream;
+        newfile >> secret_key;
       newfile.close();
     }
-    cout << st;
-    cout << stream;
-    /*
-    cout <<"Testing SHA256 in LibTopmCrypt... "<< endl;
-    string input ="We are testing LibTomCrypt";
-    unsigned char *hash_result = hashSHA2(input);
+    cout << secret_key;
+    
+    unsigned char *hash_result = hashSHA2(pt);
     string hash ="";
-    string ss;
+    stringstream ss;
     for (int i = 0; i < int(sha256_desc.hashsize); i++)
     {
         ss << hex << (int)hash_result[i];
         hash = ss;
     }
     cout <<"This is the hash : "<< hash << endl;
-    */
+    
 }
 //SHA-256 function
 unsigned char *hashSHA2(const string &input)
