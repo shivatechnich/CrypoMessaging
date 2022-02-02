@@ -3,12 +3,16 @@
 #include <iostream>
 #include <cstdlib>
 #include <iomanip>
-#include <string>
 #include <fstream>
+#include <math.h>
+#include <chrono>
+#include <thread>
+#include <zmq.hpp>
 using namespace std;
 unsigned char *hashSHA2(const string &); //prototype of the SHA256
 int main()
 {
+    using namespace std::chrono_literals;
     fstream newfile;
     string pt="";
     //For Plain text
@@ -20,31 +24,71 @@ int main()
         }
       newfile.close();
     }
-    cout << pt;
     //For secret key
-    char secret_key[32];
-    string st="";
+    string sk="";
     newfile.open("SharedSecretKey.txt",ios::in);
     if (newfile.is_open()){ //checking whether the file is open
         string tp;
         while(getline(newfile, tp)){ //read data from file object and put it into string.
-            st += tp; //print the data of the string
+            sk += tp; //print the data of the string
         }
-        newfile >> secret_key;
       newfile.close();
     }
-    cout << secret_key;
-    
-    unsigned char *hash_result = hashSHA2(pt);
-    string hash ="";
-    stringstream ss;
-    for (int i = 0; i < int(sha256_desc.hashsize); i++)
-    {
-        ss << hex << (int)hash_result[i];
-        hash = ss;
+    int pt_len = pt.length();
+    char ct[pt_len];
+    char key[pt_len];
+    for(int i=1;i<=pt_len/32;i++){
+    	string tmp = sk + to_string(i);
+	unsigned char* seed = hashSHA2(tmp);
+	for(int j=0;j<32;j++){
+	    key[(i-1)*32 + j] = seed[j];
+	}
     }
-    cout <<"This is the hash : "<< hash << endl;
+    string cp="";
+    cout << "\nHex data \n";	
+    for(int i=0;i<pt_len;i++){
+	stringstream cp_tmp;
+    	char tmp;
+	ct[i]= pt[i] ^ key[i];
+	//cout << i << ":"<<"C="<<ct[i] << ",K="<< key[i] <<",P=" << pt[i] << endl;
+	cp_tmp<<hex<<(int)ct[i];
+	cp += cp_tmp.str() + " ";
+    }
+    cp.pop_back();
+    cout << "Ciper Text:" << cp << std::endl;
+    unsigned char* hash_result = hashSHA2(pt);
+    string hash="";
+    stringstream ss;
+    for (int i=0; i<int(sha256_desc.hashsize); i++)
+    {
+	ss<<hex<<(int)hash_result[i];
+        hash = ss.str();
+    }
+    cout<<"This is the hash of Plain Text:"<<hash<<endl;
+    cout<<"length of cipher text: "<< strlen(ct) << endl;
     
+    //send to client
+    // initialize the zmq context with a single IO thread
+    zmq::context_t context{1};
+
+    // construct a REP (reply) socket and bind to interface
+    zmq::socket_t socket{context, zmq::socket_type::rep};
+    socket.bind("tcp://*:5556");
+    // prepare some static data for responses
+    const std::string data{"Sending Cipher text"};
+
+    zmq::message_t request;
+
+    // receive a request from client
+    socket.recv(request, zmq::recv_flags::none);
+    std::cout << "Received " << request.to_string() << std::endl;
+
+    // simulate work
+    std::this_thread::sleep_for(4s);
+
+    // send the reply to the client
+    socket.send(zmq::buffer(string(cp)), zmq::send_flags::none);
+
 }
 //SHA-256 function
 unsigned char *hashSHA2(const string &input)
