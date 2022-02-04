@@ -35,6 +35,10 @@ int main()
       newfile.close();
     }
     int pt_len = pt.length();
+    if( pt_len%32 != 0 ){
+    	cout << "Input is not a multiple of 32 " << endl;
+	return 0;
+    } 
     char ct[pt_len];
     char key[pt_len];
     for(int i=1;i<=pt_len/32;i++){
@@ -50,7 +54,7 @@ int main()
 	stringstream cp_tmp;
     	char tmp;
 	ct[i]= pt[i] ^ key[i];
-	//cout << i << ":"<<"C="<<ct[i] << ",K="<< key[i] <<",P=" << pt[i] << endl;
+	cout << i << ":"<<"C="<<ct[i] << ",K="<< key[i] <<",P=" << pt[i] << endl;
 	cp_tmp<<hex<<(int)ct[i];
 	cp += cp_tmp.str() + " ";
     }
@@ -66,7 +70,8 @@ int main()
     }
     cout<<"This is the hash of Plain Text:"<<hash<<endl;
     cout<<"length of cipher text: "<< strlen(ct) << endl;
-    
+    cp = hash + " " + cp;
+    cout << "Cipher Text + hash :" << cp << endl;
     //send to client
     // initialize the zmq context with a single IO thread
     zmq::context_t context{1};

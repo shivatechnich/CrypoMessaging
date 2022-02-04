@@ -47,7 +47,13 @@ if (newfile.is_open()){ //checking whether the file is open
     }
     newfile.close();
 }
-string cp = reply.to_string();
+string rep = reply.to_string();
+    int pos = rep.find(" ");
+    string cp;
+    cp = rep.substr(pos+1);
+    rep.erase(pos);
+    string rec_pt_hash;
+    rec_pt_hash = rep;
     //Decrypt
     std::istringstream hex_chars_stream(cp);
     std::vector<char> bytes;
@@ -85,6 +91,23 @@ for(int i=0;i<mess_len;i++){
     //cout << i << ":"<<"C="<<ct[i] << ",K="<< key[i] <<",P=" << pt[i] << endl;
     PT.push_back((char)pt[i]);
 }
+
+    // check if sent plain text matches with recieved text
+    unsigned char* hash_result = hashSHA2(PT);
+    string pt_hash="";
+    stringstream ss;
+    for (int i=0; i<int(sha256_desc.hashsize); i++)
+    {
+        ss<<hex<<(int)hash_result[i];
+        pt_hash = ss.str();
+    }
+    cout << "sent pt hash : " << rec_pt_hash << endl;
+    cout << "received pt hash : " << pt_hash << endl; 
+    if ( rec_pt_hash == pt_hash ){
+    	cout << "Hashes successfully match" << endl;
+    	ofstream file("Bob_h.txt");
+    	file << pt_hash;
+    }
 
 cout << "\nPlain Text : "<< PT <<endl;
 
