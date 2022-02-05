@@ -110,6 +110,10 @@ for(int i=0;i<mess_len;i++){
     }
 
 cout << "\nPlain Text : "<< PT <<endl;
+// Save Bob Plain Text in File
+ofstream file("BobPlaintext.txt");
+file << PT;
+
 
 }
 

@@ -49,6 +49,7 @@ int main()
 	}
     }
     string cp="";
+    string cp_hex="";
     cout << "\nHex data \n";	
     for(int i=0;i<pt_len;i++){
 	stringstream cp_tmp;
@@ -57,6 +58,7 @@ int main()
 	cout << i << ":"<<"C="<<ct[i] << ",K="<< key[i] <<",P=" << pt[i] << endl;
 	cp_tmp<<hex<<(int)ct[i];
 	cp += cp_tmp.str() + " ";
+	cp_hex += cp_tmp.str();
     }
     cp.pop_back();
     cout << "Ciper Text:" << cp << std::endl;
@@ -72,6 +74,11 @@ int main()
     cout<<"length of cipher text: "<< strlen(ct) << endl;
     cp = hash + " " + cp;
     cout << "Cipher Text + hash :" << cp << endl;
+
+    //Save cipher hex in file
+    ofstream file("TheCiphertext.txt");
+    file << cp_hex;
+
     //send to client
     // initialize the zmq context with a single IO thread
     zmq::context_t context{1};
