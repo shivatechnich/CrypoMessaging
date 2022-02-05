@@ -63,7 +63,7 @@ int main()
     }
     int mess_len = bytes.size();
     char* ct = bytes.data();
-    cout << "Cipher Text:" << string(ct)<< endl;
+    //cout << "Cipher Text:" << string(ct)<< endl;
     char pt[mess_len];
     char key[mess_len];
 
