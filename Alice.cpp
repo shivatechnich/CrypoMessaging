@@ -34,13 +34,15 @@ int main()
         }
       newfile.close();
     }
+    //checking the length of Input is multiple of 32
     int pt_len = pt.length();
     if( pt_len%32 != 0 ){
     	cout << "Input is not a multiple of 32 " << endl;
-	return 0;
-    } 
+	    return 0;
+    }
     char ct[pt_len];
     char key[pt_len];
+    // creating the seed for key
     for(int i=1;i<=pt_len/32;i++){
     	string tmp = sk + to_string(i);
 	unsigned char* seed = hashSHA2(tmp);
@@ -50,30 +52,31 @@ int main()
     }
     string cp="";
     string cp_hex="";
-    cout << "\nHex data \n";	
+    // Creating Cipher text using plain text and key
     for(int i=0;i<pt_len;i++){
-	stringstream cp_tmp;
-    	char tmp;
-	ct[i]= pt[i] ^ key[i];
-	cout << i << ":"<<"C="<<ct[i] << ",K="<< key[i] <<",P=" << pt[i] << endl;
-	cp_tmp<<hex<<(int)ct[i];
-	cp += cp_tmp.str() + " ";
-	cp_hex += cp_tmp.str();
+        stringstream cp_tmp;
+        char tmp;
+        ct[i]= pt[i] ^ key[i];
+        //cout << i << ":"<<"C="<<ct[i] << ",K="<< key[i] <<",P=" << pt[i] << endl;
+        cp_tmp<<hex<<(int)ct[i];
+        cp += cp_tmp.str() + " ";
+        cp_hex += cp_tmp.str();
     }
     cp.pop_back();
-    cout << "Ciper Text:" << cp << std::endl;
+    //cout << "Ciper Text:" << cp << std::endl;
+    //creating plain text hash
     unsigned char* hash_result = hashSHA2(pt);
-    string hash="";
+    string pt_hash="";
     stringstream ss;
     for (int i=0; i<int(sha256_desc.hashsize); i++)
     {
-	ss<<hex<<(int)hash_result[i];
-        hash = ss.str();
+	    ss<<hex<<(int)hash_result[i];
+        pt_hash = ss.str();
     }
-    cout<<"This is the hash of Plain Text:"<<hash<<endl;
-    cout<<"length of cipher text: "<< strlen(ct) << endl;
-    cp = hash + " " + cp;
-    cout << "Cipher Text + hash :" << cp << endl;
+    cout<<"This is the hash of Plain Text:"<<pt_hash<<endl;
+    //cout<<"length of cipher text: "<< strlen(ct) << endl;
+    cp = pt_hash + " " + cp;
+    //cout << "Cipher Text + hash :" << cp << endl;
 
     //Save cipher hex in file
     ofstream file("TheCiphertext.txt");
@@ -96,9 +99,9 @@ int main()
     std::cout << "Received " << request.to_string() << std::endl;
 
     // simulate work
-    std::this_thread::sleep_for(4s);
+    std::this_thread::sleep_for(1s);
 
-    // send the reply to the client
+    // send the reply to the client with Cipher text and Plain text hash
     socket.send(zmq::buffer(string(cp)), zmq::send_flags::none);
 
 }

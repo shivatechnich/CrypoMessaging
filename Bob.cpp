@@ -24,30 +24,29 @@ int main()
     // set up some static data to send
     const std::string data{"Send Message"};
 
-        // send the request message
-        std::cout << "Requesting Server" << "..." << std::endl;
-        socket.send(zmq::buffer(data), zmq::send_flags::none);
-        
-        // wait for reply from server
-        zmq::message_t reply{};
-        socket.recv(reply, zmq::recv_flags::none);
+    // send the request message for server
+    std::cout << "Requesting Server for text" << "..." << std::endl;
+    socket.send(zmq::buffer(data), zmq::send_flags::none);
+    
+    // wait for reply from server
+    zmq::message_t reply{};
+    socket.recv(reply, zmq::recv_flags::none);
 
-        std::cout << "Received " << reply.to_string();
-        std::cout << std::endl;
+    //std::cout << "Received " << reply.to_string();
 	//Send successful message
 	//socket.send(zmq::buffer(data),zmq::send_flags::none);
 	
-//For secret key
-string sk="";
-newfile.open("SharedSecretKey.txt",ios::in);
-if (newfile.is_open()){ //checking whether the file is open
-    string tp;
-    while(getline(newfile, tp)){ //read data from file object and put it into string.
-        sk += tp; //print the data of the string
+    //For secret key
+    string sk="";
+    newfile.open("SharedSecretKey.txt",ios::in);
+    if (newfile.is_open()){ //checking whether the file is open
+        string tp;
+        while(getline(newfile, tp)){ //read data from file object and put it into string.
+            sk += tp; //print the data of the string
+        }
+        newfile.close();
     }
-    newfile.close();
-}
-string rep = reply.to_string();
+    string rep = reply.to_string();
     int pos = rep.find(" ");
     string cp;
     cp = rep.substr(pos+1);
@@ -62,37 +61,39 @@ string rep = reply.to_string();
     {
         bytes.push_back(c);
     }
-    
     int mess_len = bytes.size();
     char* ct = bytes.data();
     cout << "Cipher Text:" << string(ct)<< endl;
     char pt[mess_len];
     char key[mess_len];
 
-cout << "Message lenght : "<< mess_len << endl;
-cout << "SharedKey :" << sk<< endl;
-int Bytes = mess_len/32;
-int i=1;
-cout << "Bytes : " << Bytes << endl;
-while(i<=Bytes){
-    string tmp = sk + to_string(i);
-    unsigned char* seed = hashSHA2(tmp);
-    for(int j=0;j<32;j++){
-        key[(i-1)*32 + j] = seed[j];
-	cout << "i="<<i<<",j:"<<j << ",:" << key[(i-1)*32 + j] << endl;
+    //cout << "Message lenght : "<< mess_len << endl;
+    //cout << "SharedKey :" << sk<< endl;
+    int Bytes = mess_len/32;
+    int i=1;
+    //cout << "Bytes : " << Bytes << endl;
+    // Seeding for key
+    while(i<=Bytes){
+        string tmp = sk + to_string(i);
+        unsigned char* seed = hashSHA2(tmp);
+        for(int j=0;j<32;j++){
+            key[(i-1)*32 + j] = seed[j];
+            //cout << "i="<<i<<",j:"<<j << ",:" << key[(i-1)*32 + j] << endl;
+        }
+        i++;
     }
-    i++;
-}
 
-cout << "Seed is done"<<endl;
-string PT = "";
-for(int i=0;i<mess_len;i++){
-    pt[i]= ct[i] ^ key[i];
-    //cout << i << ":"<<"C="<<ct[i] << ",K="<< key[i] <<",P=" << pt[i] << endl;
-    PT.push_back((char)pt[i]);
-}
+    //cout << "Seed is done"<<endl;
+    // Converting Cipher text to plain text
+    string PT = "";
+    for(int i=0;i<mess_len;i++){
+        pt[i]= ct[i] ^ key[i];
+        //cout << i << ":"<<"C="<<ct[i] << ",K="<< key[i] <<",P=" << pt[i] << endl;
+        PT.push_back((char)pt[i]);
+    }
 
     // check if sent plain text matches with recieved text
+    // Creating hash of recieved text
     unsigned char* hash_result = hashSHA2(PT);
     string pt_hash="";
     stringstream ss;
@@ -101,19 +102,18 @@ for(int i=0;i<mess_len;i++){
         ss<<hex<<(int)hash_result[i];
         pt_hash = ss.str();
     }
-    cout << "sent pt hash : " << rec_pt_hash << endl;
-    cout << "received pt hash : " << pt_hash << endl; 
+    //cout << "sent pt hash : " << rec_pt_hash << endl;
+    //cout << "received pt hash : " << pt_hash << endl; 
     if ( rec_pt_hash == pt_hash ){
     	cout << "Hashes successfully match" << endl;
     	ofstream file("Bob_h.txt");
     	file << pt_hash;
     }
 
-cout << "\nPlain Text : "<< PT <<endl;
-// Save Bob Plain Text in File
-ofstream file("BobPlaintext.txt");
-file << PT;
-
+    //cout << "\nPlain Text : "<< PT <<endl;
+    // Save Bob Plain Text in File
+    ofstream file("BobPlaintext.txt");
+    file << PT;
 
 }
 
